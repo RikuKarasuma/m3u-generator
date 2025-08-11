@@ -1,0 +1,18 @@
+{
+  "configurations": [
+    {
+      "name": "Linux",
+      "compilerPath": "/usr/bin/clang++-20",
+      "cStandard": "c17",
+      "cppStandard": "c++23",
+      "intelliSenseMode": "clang-x64",
+      "includePath": [
+        "/usr/include/c++/v1",
+        "/usr/lib/llvm-20/include",
+        "${workspaceFolder}/**"
+      ],
+      "defines": []
+    }
+  ],
+  "version": 4
+}

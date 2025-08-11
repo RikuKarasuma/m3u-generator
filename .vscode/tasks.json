@@ -1,0 +1,35 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "clang++-20",
+      "args": [
+        "-std=c++23",
+        "-stdlib=libc++",
+        "-o",
+        "m3u_generator",
+        "src/main.cpp",
+        "-Iinclude",
+        "-lcurl"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "run",
+      "type": "shell",
+      "command": "./m3u_generator",
+      "args": [ "/NAS/Music/AAC", "/NAS/Music/MP4", "http://media:2222/Music/", "./"]
+    },
+    {
+      "label": "build and run",
+      "dependsOn": ["build", "run"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    }
+  ]
+}
