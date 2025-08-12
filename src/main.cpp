@@ -10,24 +10,71 @@
 using namespace std;
 namespace fs = std::filesystem;
 
+constexpr string usageManualString() {
+
+    return 
+        "Usage: m3u_generator <directory_1> <directory_2> <prefix_path>" 
+        "<output_directory>" 
+        "\n"
+        "\n"
+        "Parameters"
+        "\n"
+        "----------"
+        "\n\n"
+        "directories:      Directories to find media files within."
+        "\n"
+        "prefix_path:      The path which will be prefixed onto each file found"
+        " within the specified directories in the final output playlists."
+        "\n"
+        "output_directory: Directory which to put the generated m3u playlists."
+        "\n"
+        "\n";
+}
+
+static void validateDirectory(const string dir) {
+
+    if (!fs::is_directory(dir)) {
+
+        throw runtime_error(
+            "Provided directory " +
+            dir +
+            " is not a directory. \n\n" +
+            usageManualString()
+        );
+    }
+}
+
+void printUsageManual() {
+    cout << usageManualString();
+}
+
 int main(int numberArgs, char* args[]) {
+
+    // todo
+    // Validation for file extensions.
+    // Optional prefix_path.
+    // Optional total playlist, series playlists.
 
     bool error = false;
 
-    if (numberArgs < 2) {
-
+    if (numberArgs < 4) {
         cout << 
             "ERROR: Must specify at least one directory to generate from. " <<
-            "Usage: m3u_generator <directory_1> <directory_2> <prepending_path>" <<
-            "<output_directory>" <<
             endl;
-
+        printUsageManual();
         error = true;
         return error;
     }
 
     const string prependingPath = args[numberArgs - 2];
     const string outputPath = args[numberArgs - 1];
+
+    validateDirectory(outputPath);
+    
+    for (int i = 1; i < numberArgs - 2 ; i ++) {
+
+        validateDirectory(args[i]);
+    }
 
     map<string, set<string>> files;
 

@@ -1,0 +1,16 @@
+[Unit]
+Description=My Custom Service
+After=network.target
+
+[Service]
+Type=simple
+User=myuser
+Group=mygroup
+WorkingDirectory=/path/to/working/dir
+ExecStart=/path/to/executable --arg1 value1 --arg2 value2
+Restart=on-failure
+RestartSec=5
+Environment="ENV_VAR1=value1" "ENV_VAR2=value2"
+
+[Install]
+WantedBy=multi-user.target
