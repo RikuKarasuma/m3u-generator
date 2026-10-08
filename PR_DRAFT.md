@@ -26,31 +26,31 @@ This PR introduces the complete deployment of the M3U Playlist Generator applica
 ```mermaid
 graph TB
     subgraph "Systemd Timer"
-        A[Timer Unit] -->|OnBootSec=1min| B[Schedule: Every 10min]
+        A\[Timer Unit] -->|OnBootSec=1min| B\[Schedule: Every 10min]
     end
     
     subgraph "Service Execution"
-        B --> C[Execute /usr/bin/m3u-generator]
-        C --> D[Process Media Directories]
-        D --> E[Upload to WebDAV]
-        E --> F[Generate M3U Playlists]
+        B --> C\[Execute /usr/bin/m3u-generator]
+        C --> D\[Process Media Directories]
+        D --> E\[Upload to WebDAV]
+        E --> F\[Generate M3U Playlists]
     end
     
     subgraph "Storage"
-        D --> G[/NAS/storage/Media/Music/AAC]
-        D --> H[/NAS/storage/Media/Music/FLAC]
-        D --> I[/NAS/storage/Media/Music/MP3]
-        D --> J[/NAS/storage/Media/Music/MP4]
-        D --> K[/NAS/storage/Media/Music/OOG]
-        D --> L[/NAS/storage/Media/Music/War Aesthetics]
+        D --> G\[/NAS/storage/Media/Music/AAC]
+        D --> H\[/NAS/storage/Media/Music/FLAC]
+        D --> I\[/NAS/storage/Media/Music/MP3]
+        D --> J\[/NAS/storage/Media/Music/MP4]
+        D --> K\[/NAS/storage/Media/Music/OOG]
+        D --> L\[/NAS/storage/Media/Music/War Aesthetics]
     end
     
     subgraph "WebDAV"
-        E --> M[http://media.tailor-shop:2222/Music/]
+        E --> M\[http://media.tailor-shop:2222/Music/]
     end
     
     subgraph "Logging"
-        C --> N[journalctl -u m3u-generator]
+        C --> N\[journalctl -u m3u-generator]
     end
 
 ```
@@ -179,12 +179,12 @@ sudo rm -rf /var/log/m3u-generator/
 
 ## ✅ Checklist for Reviewers
 
-- [x] Service unit security settings verified
-- [x] Timer configuration matches requirements (10-min interval)
-- [x] CMake build system tested on target platform
-- [x] Test suite passes all assertions
-- [x] Deployment guide addresses common issues
-- [x] Sensitive files excluded from public repository
+- \[x] Service unit security settings verified
+- \[x] Timer configuration matches requirements (10-min interval)
+- \[x] CMake build system tested on target platform
+- \[x] Test suite passes all assertions
+- \[x] Deployment guide addresses common issues
+- \[x] Sensitive files excluded from public repository
 
 ---
 
