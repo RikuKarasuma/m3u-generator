@@ -1,16 +1,24 @@
 [Unit]
-Description=My Custom Service
+Description=M3U Playlist Generator for WebDAV
+Documentation=man:m3u-generator(1)
 After=network.target
 
 [Service]
 Type=simple
-User=myuser
-Group=mygroup
-WorkingDirectory=/path/to/working/dir
-ExecStart=/path/to/executable --arg1 value1 --arg2 value2
+ExecStart=/usr/local/bin/m3u-generator --config /etc/m3u-generator/generator.conf
+WorkingDirectory=/var/lib/m3u-generator
+StandardOutput=journal
+StandardError=journal
 Restart=on-failure
-RestartSec=5
-Environment="ENV_VAR1=value1" "ENV_VAR2=value2"
+RestartSec=30
+
+# Security hardening for RockPi
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=yes
+ReadWritePaths=/var/lib/m3u-generator /var/www/html
+Environment=LD_LIBRARY_PATH=
 
 [Install]
 WantedBy=multi-user.target

@@ -1,0 +1,11 @@
+[Unit]
+Description=M3U Playlist Generator Timer
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=15min
+AccuracySec=1min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
