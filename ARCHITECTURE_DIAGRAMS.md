@@ -7,7 +7,7 @@ graph TB
     subgraph "Deployment Layer"
         A[systemctl start m3u-generator.service]
         B[systemctl start m3u-generator.timer]
-        C[/usr/bin/m3u-generator binary]
+        C["/usr/bin/m3u-generator binary"]:::binary
     end
     
     subgraph "Processing Pipeline"
@@ -18,12 +18,12 @@ graph TB
     end
     
     subgraph "Storage Layer"
-        H[/NAS/storage/Media/Music/AAC]
-        I[/NAS/storage/Media/Music/FLAC]
-        J[/NAS/storage/Media/Music/MP3]
-        K[/NAS/storage/Media/Music/MP4]
-        L[/NAS/storage/Media/Music/OOG]
-        M[/NAS/storage/Media/Music/War Aesthetics]
+        H["/NAS/storage/Media/Music/AAC"]
+        I["/NAS/storage/Media/Music/FLAC"]
+        J["/NAS/storage/Media/Music/MP3"]
+        K["/NAS/storage/Media/Music/MP4"]
+        L["/NAS/storage/Media/Music/OOG"]
+        M["/NAS/storage/Media/Music/War Aesthetics"]
     end
     
     subgraph "WebDAV Upload"
@@ -33,7 +33,7 @@ graph TB
     
     subgraph "Logging & Monitoring"
         P[journalctl -u m3u-generator]
-        Q[/var/log/m3u-generator/*.log]
+        Q["/var/log/m3u-generator/*.log"]
     end
     
     A --> C
@@ -132,10 +132,10 @@ flowchart LR
     end
     
     subgraph "Output Destinations"
-        I[/Music/AAC.m3u]:::output
-        J[/Music/FLAC.m3u]:::output
-        K[/Music/MP3.m3u]:::output
-        L[WebDAV Server]:::output
+        I["/Music/AAC.m3u"]:::output
+        J["/Music/FLAC.m3u"]:::output
+        K["/Music/MP3.m3u"]:::output
+        L["WebDAV Server"]:::output
         M[journal logs]:::output
     end
     
@@ -220,7 +220,7 @@ stateDiagram-v2
     ErrorState --> MonitorMode: No Restart (Security Policy)
     MonitorMode --> [*]
     
-    note right of SecurityControls
+    note right of InstallComplete
         - Runs as non-root user
         - Restricted filesystem access
         - Journal logging only
