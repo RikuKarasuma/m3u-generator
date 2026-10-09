@@ -1,0 +1,1 @@
+/usr/bin/c++ "CMakeFiles/m3u-generator.dir/src/main.cpp.o" -o m3u-generator  /usr/lib/x86_64-linux-gnu/libcurl.so 

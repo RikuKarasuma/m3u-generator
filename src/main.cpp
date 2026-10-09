@@ -1,145 +1,152 @@
-
 #include <filesystem>
 #include <set>
 #include <map>
 #include <iostream>
-#include <string>
 #include <fstream>
 #include <curl/curl.h>
 
-using namespace std;
+#include "m3u_generator.h"
+
 namespace fs = std::filesystem;
 
-constexpr string usageManualString() {
+// Implementation of validateDirectory from header
+bool m3u::validateDirectory(const std::string& dir) {
+    if (!fs::is_directory(dir)) {
+        std::cerr << "Error: Provided directory \"" << dir << "\" is not a directory." << std::endl;
+        std::cerr << m3u::usageManualString() << std::endl;
+        return false;
+    }
+    return true;
+}
 
+// Implementation of encodeURL from header
+std::string m3u::encodeURL(const std::string& path) {
+    CURL* curl = curl_easy_init();
+    if (curl) {
+        std::string encoded = curl_easy_escape(curl, path.c_str(), 0);
+        curl_free(curl);
+        return encoded;
+    }
+    return path;  // fallback if curl init fails
+}
+
+// Implementation of usageManualString from header
+std::string m3u::usageManualString() {
     return 
-        "Usage: m3u_generator <directory_1> <directory_2> <prefix_path>" 
-        "<output_directory>" 
+        "Usage: m3u_generator <directory_1> <directory_2> ... <output_directory>\n"
         "\n"
-        "\n"
-        "Parameters"
-        "\n"
-        "----------"
-        "\n\n"
-        "directories:      Directories to find media files within."
-        "\n"
-        "prefix_path:      The path which will be prefixed onto each file found"
-        " within the specified directories in the final output playlists."
-        "\n"
-        "output_directory: Directory which to put the generated m3u playlists."
-        "\n"
+        "Parameters:\n"
+        "  directories:   Directories to find media files within.\n"
+        "  output_directory: Directory which to put the generated m3u playlists.\n"
         "\n";
 }
 
-static void validateDirectory(const string dir) {
-
-    if (!fs::is_directory(dir)) {
-
-        throw runtime_error(
-            "Provided directory " +
-            dir +
-            " is not a directory. \n\n" +
-            usageManualString()
-        );
-    }
+// Implementation of printUsageManual from header
+void m3u::printUsageManual() {
+    std::cout << m3u::usageManualString();
 }
 
-void printUsageManual() {
-    cout << usageManualString();
-}
-
-int main(int numberArgs, char* args[]) {
-
-    // todo
-    // Validation for file extensions.
-    // Optional prefix_path.
-    // Optional total playlist, series playlists.
-
-    bool error = false;
-
-    if (numberArgs < 4) {
-        cout << 
-            "ERROR: Must specify at least one directory to generate from. " <<
-            endl;
-        printUsageManual();
-        error = true;
-        return error;
-    }
-
-    const string prependingPath = args[numberArgs - 2];
-    const string outputPath = args[numberArgs - 1];
-
-    validateDirectory(outputPath);
+int main(int argc, char* argv[]) {
+    // Parse configuration using GeneratorConfig::fromArgs
+    m3u::GeneratorConfig config;
     
-    for (int i = 1; i < numberArgs - 2 ; i ++) {
-
-        validateDirectory(args[i]);
-    }
-
-    map<string, set<string>> files;
-
-    for (int i = 1; i < numberArgs - 2; i ++) {
-
-        string directory = string(args[i]);
-        string topLevelDirectory = directory.substr(directory.find_last_of("/"));
-
-        for ( const auto& file : fs::directory_iterator(directory)) {
-
-            if (file.is_regular_file()) {
-
-                const string filename = file.path().filename().string();
-                cout << "Processing: " << filename << endl;
-
-                files[topLevelDirectory].insert(filename);
+    try {
+        config = m3u::GeneratorConfig::fromArgs(argc, argv);
+        
+        // Validate all directories
+        for (const auto& dir : config.source_directories) {
+            if (!m3u::validateDirectory(dir)) {
+                return 1;
             }
         }
-    }
-
-    CURL* curl = curl_easy_init();
-
-    // Generate file by file
-    for (const auto& [directoryName, files] : files) {
-
-        ofstream outputStream(outputPath + directoryName + ".m3u");
-
-        if (!outputStream) {
-            throw runtime_error("Cannot write " + directoryName);
+        
+        // Initialize libcurl
+        CURL* curl = curl_easy_init();
+        if (!curl) {
+            std::cerr << "Error: Failed to initialize curl" << std::endl;
+            return 1;
         }
-
-        outputStream << "#EXTM3U" << endl;
-
-        for ( const string filename : files) {
-
-            string topDirWithFile(filename);
-            string urlEncoded = curl_easy_escape(curl, topDirWithFile.c_str(), 0);
-
-            outputStream << "#EXTINF:0," << filename << endl;
-            outputStream << prependingPath + directoryName + "/" + urlEncoded << endl;
+        
+        // Prepare base paths
+        std::string prependingPath = config.prefix_path.value_or("");
+        std::string outputPath = config.output_directory;
+        
+        // Scan directories and collect files
+        std::map<std::string, std::set<std::string>> directoryFiles;
+        
+        for (const auto& directory : config.source_directories) {
+            directoryFiles[directory] = {};
+            
+            try {
+                for (const auto& file : fs::directory_iterator(directory)) {
+                    if (file.is_regular_file()) {
+                        const std::string filename = file.path().filename().string();
+                        directoryFiles[directory].insert(filename);
+                    }
+                }
+            } catch (const std::exception& e) {
+                std::cerr << "Warning: Could not scan directory \"" << directory 
+                          << "\": " << e.what() << std::endl;
+            }
         }
-    }
-
-    ofstream totalOutputStream(outputPath + "Total.m3u");
-
-    if (!totalOutputStream) {
-        throw runtime_error("Cannot write Total.m3u");
-    }
-
-    totalOutputStream << "#EXTM3U" << endl;
-
-    // Generate total playlist
-    for (const auto& [directoryName, files] : files) {
-
-        for ( const string filename : files) {
-
-            string topDirWithFile(filename);
-            string urlEncoded = curl_easy_escape(curl, topDirWithFile.c_str(), 0);
-
-            totalOutputStream << "#EXTINF:0," << filename << endl;
-            totalOutputStream << prependingPath + directoryName + "/" + urlEncoded << endl;
+        
+        // Generate individual playlists for each directory
+        for (const auto& [directoryName, files] : directoryFiles) {
+            std::string outputPathDir = outputPath + "/" + directoryName + ".m3u";
+            
+            std::ofstream outputStream(outputPathDir);
+            if (!outputStream) {
+                std::cerr << "Error: Cannot write playlist \"" << directoryName 
+                          << ".m3u\"" << std::endl;
+                curl_free(curl);
+                return 1;
+            }
+            
+            outputStream << "#EXTM3U" << std::endl;
+            
+            for (const auto& filename : files) {
+                std::string topDirWithFile = directoryName + "/" + filename;
+                std::string urlEncoded = m3u::encodeURL(topDirWithFile);
+                
+                outputStream << "#EXTINF:0," << filename << std::endl;
+                outputStream << prependingPath + directoryName + "/" + urlEncoded << std::endl;
+            }
+            
+            outputStream.close();
         }
+        
+        // Generate total playlist
+        std::string totalOutputPath = outputPath + "/Total.m3u";
+        std::ofstream totalOutputStream(totalOutputPath);
+        
+        if (!totalOutputStream) {
+            std::cerr << "Error: Cannot write Total.m3u" << std::endl;
+            curl_free(curl);
+            return 1;
+        }
+        
+        totalOutputStream << "#EXTM3U" << std::endl;
+        
+        for (const auto& [directoryName, files] : directoryFiles) {
+            for (const auto& filename : files) {
+                std::string topDirWithFile = directoryName + "/" + filename;
+                std::string urlEncoded = m3u::encodeURL(topDirWithFile);
+                
+                totalOutputStream << "#EXTINF:0," << filename << std::endl;
+                totalOutputStream << prependingPath + directoryName + "/" + urlEncoded << std::endl;
+            }
+        }
+        
+        totalOutputStream.close();
+        
+        curl_free(curl);
+        
+        std::cout << "Playlists generated successfully in \"" << outputPath << "\"" << std::endl;
+        
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
     }
-
-    curl_free(curl);
-
-    return error;
+    
+    return 0;
 }

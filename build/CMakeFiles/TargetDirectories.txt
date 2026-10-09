@@ -1,0 +1,7 @@
+/project/build/CMakeFiles/m3u-generator.dir
+/project/build/CMakeFiles/edit_cache.dir
+/project/build/CMakeFiles/rebuild_cache.dir
+/project/build/CMakeFiles/list_install_components.dir
+/project/build/CMakeFiles/install.dir
+/project/build/CMakeFiles/install/local.dir
+/project/build/CMakeFiles/install/strip.dir

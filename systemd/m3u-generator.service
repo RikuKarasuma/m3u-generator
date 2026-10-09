@@ -1,0 +1,17 @@
+[Unit]
+Description=M3U Playlist Generator for WebDAV
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/m3u-generator --output /var/www/html/playlists.m3u \
+  --source-dir /data/videos \
+  --prefix /videos \
+  --extensions mp4,mkv,avi
+Restart=on-failure
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
